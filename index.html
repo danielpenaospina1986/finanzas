@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover,interactive-widget=resizes-content">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Finanzas">
 <title>Finanzas</title>
 <style>
@@ -126,8 +126,12 @@ function qInfoAt(off){var d=new Date();var tq=d.getDate()<=14?0:1;tq+=off;var am
 function payDateInQ(dia,qi){if(qi.isQ1){return dia>=1&&dia<=14?new Date(qi.year,qi.month,dia).toISOString().slice(0,10):null}else{return dia>=15?new Date(qi.year,qi.month,dia).toISOString().slice(0,10):null}}
 
 async function fb(mt,p,d){try{var o={method:mt,headers:{"Content-Type":"application/json"}};if(d)o.body=JSON.stringify(d);var tok=await authToken();var r=await fetch(DB+"/"+p+".json"+(tok?"?auth="+encodeURIComponent(tok):""),o);return r.json()}catch(e){return null}}
-function cls(){document.getElementById("shModal").classList.remove("open")}
-function modal(t,h){document.getElementById("shTitle").textContent=t;document.getElementById("shBody").innerHTML=h;document.getElementById("shModal").classList.add("open")}
+function _kbAdjust(){var ov=document.getElementById("shModal");if(!ov||!window.visualViewport||!ov.classList.contains("open"))return;var vv=window.visualViewport;var kb=Math.max(0,window.innerHeight-vv.height-vv.offsetTop);if(kb<=1){_kbReset();return}ov.style.paddingBottom=kb+"px";var sh=ov.querySelector(".sh");if(sh)sh.style.maxHeight=(vv.height-12)+"px"}
+function _kbReset(){var ov=document.getElementById("shModal");if(!ov)return;ov.style.paddingBottom="";var sh=ov.querySelector(".sh");if(sh)sh.style.maxHeight=""}
+if(window.visualViewport){window.visualViewport.addEventListener("resize",_kbAdjust);window.visualViewport.addEventListener("scroll",_kbAdjust)}
+document.addEventListener("focusin",function(e){var m=e.target&&e.target.closest?e.target.closest("#shModal"):null;if(m&&m.classList.contains("open")){setTimeout(_kbAdjust,60);setTimeout(function(){try{if(e.target.scrollIntoView)e.target.scrollIntoView({block:"center",behavior:"smooth"})}catch(_){}},150)}});
+function cls(){document.getElementById("shModal").classList.remove("open");_kbReset()}
+function modal(t,h){document.getElementById("shTitle").textContent=t;document.getElementById("shBody").innerHTML=h;document.getElementById("shModal").classList.add("open");_kbReset()}
 function toast(m){var t=document.getElementById("toast");t.textContent=m;t.classList.remove("show");void t.offsetWidth;t.classList.add("show");setTimeout(function(){t.classList.remove("show")},2200)}
 function go(t){cTab=t;document.querySelectorAll(".tab").forEach(function(e,i){e.classList.toggle("active",["dash","gastos","inv","stats","info"][i]===t)});render();window.scrollTo(0,0)}
 function oe(o){return o?Object.entries(o):[]}
