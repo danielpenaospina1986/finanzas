@@ -220,6 +220,14 @@ items.sort(function(a,b){if(a.pagado!==b.pagado)return a.pagado?1:-1;return a.pr
 return{items:items,accum:Object.keys(nc).filter(function(k){return nc[k]>1})}
 }
 
+// Copia como texto lo pendiente de la quincena actual y lo atrasado de quincenas pasadas.
+function copyPend(){var qi=qInfo();var pend=buildCL(qi).items.filter(function(x){return!x.pagado});var past=buildPast();var L=[],tc=0,tu=0;function ln(x,i){var v=x.mon==="USD"?fU(x.m):f$(x.m);if(x.mon==="USD")tu+=x.m;else tc+=x.m;return(i+1)+". "+x.n+": "+v+(x.vence?" (vence "+x.vence+")":"")}
+L.push("Pendiente "+qi.label+":");pend.forEach(function(x,i){L.push(ln(x,i))});if(!pend.length)L.push("(nada)");
+if(past.length){L.push("");L.push("Atrasado de quincenas pasadas:");past.forEach(function(x,i){L.push(ln(x,pend.length+i)+" ["+x.qLabel+"]")})}
+L.push("");L.push("Total: "+f$(tc)+(tu?" + "+fU(tu):""));var t=L.join("\n");
+var done=function(){toast("Lista copiada")};var fbk=function(){modal("Pendientes",'<textarea style="width:100%;height:300px;font-size:13px" readonly>'+t.replace(/</g,"&lt;")+'</textarea><div style="font-size:12px;color:var(--text3);margin-top:6px">Mantén presionado para copiar</div>')};
+try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(done,fbk)}else fbk()}catch(e){fbk()}}
+
 // Collect unpaid fijos/deudas from past quincenas (itinerantes/imprevistos vencidos ya entran en la quincena actual via buildCL).
 // Una quincena pasada se revisa si es la inmediatamente anterior, o si ya tiene algun pago registrado (evita inundar con meses previos al uso de la app).
 function buildPast(){
@@ -335,7 +343,7 @@ var ingTotalCOP=ings.filter(function(x){return x[1].moneda!=="USD"}).reduce(func
 var ingTotalUSD=ings.filter(function(x){return x[1].moneda==="USD"}).reduce(function(s,x){return s+x[1].monto},0);
 
 if(cTab==="dash"){
-document.getElementById('pgTitle').textContent='Checklist';document.getElementById('pgBar').innerHTML='<button onclick="openSync()">Sync</button>';h+='<div class="cnt">';
+document.getElementById('pgTitle').textContent='Checklist';document.getElementById('pgBar').innerHTML='<button onclick="copyPend()">Copiar</button> <button onclick="openSync()">Sync</button>';h+='<div class="cnt">';
 h+='<div class="acts" style="grid-template-columns:repeat(3,1fr)"><button class="act" style="flex-direction:column;text-align:center" onclick="regIngreso()"><div class="act-i" style="background:var(--teal)">$</div><div>Ingreso</div></button><button class="act" style="flex-direction:column;text-align:center" onclick="addExtra()"><div class="act-i" style="background:var(--purple)">+</div><div>Extra</div></button><button class="act" style="flex-direction:column;text-align:center" onclick="addIt()"><div class="act-i" style="background:var(--orange)">✦</div><div>Itinerante</div></button></div>';
 h+='<div class="g"><div class="q-hdr"><div><div class="q-title">'+qi.label+'</div><div class="q-sub">'+qi.range+'</div></div><div style="text-align:right">';
 if(tpCOP)h+='<div class="q-amt" style="color:var(--red)">'+f$(tpCOP)+'</div>';
