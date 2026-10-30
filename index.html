@@ -118,6 +118,7 @@ var fV=function(v,m){return m==="USD"?fU(v):f$(v)};
 var MS=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
 var CL=["#007aff","#5856d6","#34aadc","#ff9500","#ff2d55","#4cd964","#5ac8fa","#ffcc00","#ff3b30","#8e8e93"];
 var MEDIOS=["Efectivo","TC Rappi","TC Bancolombia","TC Atl Nacional","Otro"];
+var openQ={};function togQ(el,k){openQ[k]=!openQ[k];el.nextElementSibling.classList.toggle("open",openQ[k])}
 var D=null,cTab="dash",gSeg="fijos",stSeg="cats",anChart="bars";
 
 function diasI(v){if(!v)return{t:"sin fecha",c:"var(--text3)"};var h=new Date();h.setHours(0,0,0,0);var d=new Date(v+"T00:00:00");var df=Math.round((d-h)/864e5);if(df<0)return{t:"vencio "+Math.abs(df)+"d",c:"var(--red)"};if(df===0)return{t:"HOY",c:"var(--red)"};if(df<=3)return{t:"en "+df+"d",c:"var(--orange)"};if(df<=7)return{t:"en "+df+"d",c:"var(--yellow)"};return{t:v.slice(5),c:"var(--text3)"}}
@@ -368,13 +369,15 @@ h+='<div class="r" onclick=\'payItem('+JSON.stringify(JSON.stringify(it))+')\'><
 h+="</div>"}
 h+='<div class="sT">Proximas quincenas</div><div class="g">';
 for(var qi2=1;qi2<=12;qi2++){var fut=qInfoAt(qi2);var fcl=buildCL(fut);var fP=fcl.items.filter(function(x){return!x.pagado});var ftCOP=fP.filter(function(x){return x.mon!=="USD"}).reduce(function(s,x){return s+x.m},0);var ftUSD=fP.filter(function(x){return x.mon==="USD"}).reduce(function(s,x){return s+x.m},0);
-h+='<div class="q-exp" onclick="this.nextElementSibling.classList.toggle(\'open\')"><div><div style="font-size:14px;font-weight:600">'+fut.label+'</div><div style="font-size:11px;color:var(--text3)">'+fut.range+' · '+fP.length+' pagos</div></div><div style="text-align:right">';
+var fPd=fcl.items.filter(function(x){return x.pagado});var isOpen=!!openQ[fut.key];
+h+='<div class="q-exp" onclick="togQ(this,\''+fut.key+'\')"><div><div style="font-size:14px;font-weight:600">'+fut.label+'</div><div style="font-size:11px;color:var(--text3)">'+fut.range+' · '+fP.length+' pagos</div></div><div style="text-align:right">';
 if(ftCOP)h+='<div style="font-size:14px;font-weight:600;color:var(--red)">'+f$(ftCOP)+'</div>';
 if(ftUSD)h+='<div style="font-size:12px;font-weight:600;color:var(--teal)">'+fU(ftUSD)+'</div>';
-h+='</div></div><div class="q-det">';
+h+='</div></div><div class="q-det'+(isOpen?' open':'')+'">';
 h+='<div style="display:flex;justify-content:space-between;padding:8px 14px;font-size:12px;border-bottom:.5px solid var(--sep)"><span style="color:var(--text3)">Ingreso est.</span><span style="color:var(--green)">COP '+f$(avg.cop)+' · USD '+fU(avg.usd)+'</span></div>';
-fP.forEach(function(x){var c=["var(--pink)","var(--orange)","var(--blue)","var(--gray)"][x.pri||0];h+='<div style="display:flex;gap:8px;padding:7px 14px;border-bottom:.5px solid var(--sep);font-size:13px"><div style="width:8px;height:8px;border-radius:50%;background:'+c+';margin-top:4px;flex-shrink:0"></div><div style="flex:1">'+x.n+' <span class="pill" style="background:'+(x.mon==="USD"?"var(--teal)":"var(--blue)")+';color:#fff;font-size:9px">'+(x.mon==="USD"?"USD":"COP")+'</span></div><div style="font-weight:600;color:'+c+'">'+fV(x.m,x.mon)+"</div></div>"});
+fP.forEach(function(x){var c=["var(--pink)","var(--orange)","var(--blue)","var(--gray)"][x.pri||0];h+='<div onclick=\'payItem('+JSON.stringify(JSON.stringify(x))+')\' style="display:flex;gap:8px;align-items:center;padding:7px 14px;border-bottom:.5px solid var(--sep);font-size:13px;cursor:pointer"><div class="chk" style="border-color:'+c+'"></div><div style="flex:1">'+x.n+' <span class="pill" style="background:'+(x.mon==="USD"?"var(--teal)":"var(--blue)")+';color:#fff;font-size:9px">'+(x.mon==="USD"?"USD":"COP")+'</span></div><div style="font-weight:600;color:'+c+'">'+fV(x.m,x.mon)+"</div></div>"});
 if(!fP.length)h+='<div style="padding:12px 14px;font-size:13px;color:var(--green)">Sin pagos</div>';
+fPd.forEach(function(x){h+='<div onclick="undoPay(\''+x.src+"','"+x.srcId+"','"+x.vence+'\')" style="display:flex;gap:8px;align-items:center;padding:7px 14px;border-bottom:.5px solid var(--sep);font-size:13px;opacity:.45;cursor:pointer"><div class="chk on"></div><div style="flex:1;text-decoration:line-through">'+x.n+' <span style="font-size:11px">· adelantado</span></div><div style="font-weight:600">'+fV(x.montoReal||x.m,x.monPagado||x.mon)+"</div></div>"});
 h+="</div>"}
 h+="</div></div>"}
 
